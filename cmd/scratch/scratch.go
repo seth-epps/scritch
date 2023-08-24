@@ -9,6 +9,7 @@ import (
 	"log"
 	"os/exec"
 
+	"github.com/seth-epps/scritch/cmd/cli"
 	"github.com/seth-epps/scritch/scratch"
 	"github.com/seth-epps/scritch/scratch/templates"
 	"github.com/spf13/cobra"
@@ -20,7 +21,7 @@ type scratchOptions struct {
 }
 
 // NewScratchCommand creates a new `scritch scratch` command
-func NewScratchCommand() *cobra.Command {
+func NewScratchCommand(cli *cli.CLI) *cobra.Command {
 	opts := scratchOptions{}
 
 	var scratchCmd = &cobra.Command{
