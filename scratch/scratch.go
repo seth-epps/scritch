@@ -7,27 +7,39 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
-	"text/template"
 
 	"github.com/google/uuid"
-	"github.com/seth-epps/scritch/templates"
+	"github.com/seth-epps/scritch/scratch/templates"
 )
 
 const (
-	ScritchDirectoryName = ".scritch"
-	DestinationFallback  = "/tmp"
+	scritchDirectoryName = ".scritch"
+	destinationFallback  = "/tmp"
 	directoryPermissions = os.ModeDir | 0755
 )
 
-func GenerateScratch(language, variant string) (scratchLocation string, err error) {
+type Scratcher struct {
+	Destination string
+}
 
-	tmpls, err := templates.GetNativelySupportedTemplates(language, variant)
+func NewDefaultScratcher() Scratcher {
+	root, err := os.UserHomeDir()
 	if err != nil {
-		return scratchLocation, fmt.Errorf("Failed to retrieve template `%v (%v)`: %w", language, variant, err)
+		log.Printf("Could not resolve $HOME; falling back to %v", destinationFallback)
+		root = destinationFallback
+	}
+	return Scratcher{
+		Destination: filepath.Join(root, scritchDirectoryName),
+	}
+}
+
+func (s Scratcher) GenerateScratch(templateProvider templates.TemplateProvider) (scratchLocation string, err error) {
+	tmpls, err := templateProvider.Get()
+	if err != nil {
+		return scratchLocation, fmt.Errorf("Failed to retrieve template: %w", err)
 	}
 
-	scratchLocation, err = resolveDestinationPath(language, variant)
+	scratchLocation, err = s.createDestination(templateProvider)
 	if err != nil {
 		return scratchLocation, fmt.Errorf("Could not resolve scratch destination: %w", err)
 	}
@@ -39,28 +51,26 @@ func GenerateScratch(language, variant string) (scratchLocation string, err erro
 	return scratchLocation, err
 }
 
-func resolveDestinationPath(language, variant string) (string, error) {
-	//TODO allow configuration of destination
-	home, err := os.UserHomeDir()
-	if err != nil {
-		log.Printf("Could not resolve $HOME; falling back to %v", DestinationFallback)
-		home = DestinationFallback
-	}
-
+func (s Scratcher) createDestination(templateProvider templates.TemplateProvider) (string, error) {
 	generatedUUID := uuid.New()
-	target := filepath.Join(home, ScritchDirectoryName, language, variant, generatedUUID.String())
+	target := filepath.Join(s.Destination, templateProvider.TargetPath(), generatedUUID.String())
 
-	err = os.MkdirAll(target, directoryPermissions)
-	if err != nil {
-		return "", fmt.Errorf("Could not create directory `%v` to store scratch files: %w", target, err)
+	if err := mkdirIfNotExist(target); err != nil {
+		return "", err
 	}
+
 	return target, nil
 }
 
-func writeScratchFile(tmpl *template.Template, destinationPath string) error {
-	errorFormat := "Could not create file %v: %w"
-	targetFilename, _ := strings.CutSuffix(tmpl.Name(), ".tpl")
-	filePath := filepath.Join(destinationPath, targetFilename)
+func writeScratchFile(tmpl templates.Template, destinationPath string) error {
+	errorFormat := "Could not create scratch file %v: %w"
+
+	dirPath := filepath.Join(destinationPath, filepath.Dir(tmpl.RelativePath))
+	if err := mkdirIfNotExist(dirPath); err != nil {
+		return err
+	}
+
+	filePath := filepath.Join(destinationPath, tmpl.RelativePath)
 
 	file, err := os.Create(filePath)
 	if err != nil {
@@ -69,7 +79,7 @@ func writeScratchFile(tmpl *template.Template, destinationPath string) error {
 	defer file.Close()
 
 	var buf bytes.Buffer
-	err = tmpl.Execute(&buf, nil)
+	err = tmpl.GoTemplate.Execute(&buf, nil)
 	if err != nil {
 		return fmt.Errorf(errorFormat, err)
 	}
@@ -79,5 +89,12 @@ func writeScratchFile(tmpl *template.Template, destinationPath string) error {
 		return fmt.Errorf(errorFormat, err)
 	}
 
+	return nil
+}
+
+func mkdirIfNotExist(path string) error {
+	if err := os.MkdirAll(path, directoryPermissions); err != nil {
+		return fmt.Errorf("Could not create destination directory `%v` to store scratch files: %w", path, err)
+	}
 	return nil
 }

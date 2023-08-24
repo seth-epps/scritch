@@ -5,9 +5,12 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"log"
+	"os/exec"
 
 	"github.com/seth-epps/scritch/scratch"
+	"github.com/seth-epps/scritch/scratch/templates"
 	"github.com/spf13/cobra"
 )
 
@@ -47,20 +50,37 @@ func getLanguageFromArgs(args []string) string {
 }
 
 func runScratch(language string, options scratchOptions) error {
-	if language != "" {
-		scratchLocation, err := scratch.GenerateScratch(language, options.variant)
-		if err != nil {
-			log.Fatalf("Failed to generate `%v (%v)` scratch: %v", language, options.variant, err)
-			return nil
-		}
-		log.Printf("Created scratch at %v", scratchLocation)
+	templateProvider, err := getTemplateProvider(language, options)
+	if err != nil {
+		log.Fatalf("Could not find template provider: %v", err)
 		return nil
 	}
 
-	//TODO actually do something with this...
-	if options.source == "" {
-		return errors.New("Must provide custom template source path if language not specified.")
+	scratcher := scratch.NewDefaultScratcher()
+	scratchLocation, err := scratcher.GenerateScratch(templateProvider)
+	if err != nil {
+		log.Fatalf("Failed to generate scratch: %v", err)
+		return nil
+	}
+	log.Printf("Created scratch at %v", scratchLocation)
+	openEditor(scratchLocation)
+	return nil
+}
+
+func getTemplateProvider(language string, options scratchOptions) (templates.TemplateProvider, error) {
+	if language != "" {
+		return templates.NewEmbeddedTemplateProvider(language, options.variant), nil
+	}
+	if options.source != "" {
+		return templates.NewFilesystemTemplateProvider(options.source), nil
 	}
 
-	return nil
+	return nil, errors.New("Must provide custom template source path if language not specified.")
+}
+
+func openEditor(path string) {
+	cmd := exec.Command("code", path)
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("Couldn't open editor: %v", err)
+	}
 }
