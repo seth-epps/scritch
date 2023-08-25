@@ -12,8 +12,6 @@ import (
 )
 
 const (
-	scritchDirectoryName = ".scritch"
-	destinationFallback  = "/tmp"
 	directoryPermissions = os.ModeDir | 0755
 )
 
