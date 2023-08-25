@@ -71,15 +71,15 @@ func (fp FilesystemTemplateProvider) TargetPath() string {
 }
 
 func (fp FilesystemTemplateProvider) findTemplateLocation() (string, error) {
-	if filepath.IsAbs(fp.sourcepath) {
-		return fp.sourcepath, nil
+	path, err := util.ReplaceHomeShortcut(fp.sourcepath)
+	if err != nil {
+		return fp.sourcepath, fmt.Errorf("could not resolve source: %w", err)
+	}
+	if filepath.IsAbs(path) {
+		return path, nil
 	}
 
-	if path, err := util.ReplaceHomeShortcut(fp.sourcepath); err != nil {
-		return fp.sourcepath, fmt.Errorf("could not resolve source: %w", err)
-	} else {
-		return searchForSource(path, fp.searchPaths)
-	}
+	return searchForSource(path, fp.searchPaths)
 }
 
 func searchForSource(source string, locations []string) (string, error) {

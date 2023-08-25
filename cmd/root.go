@@ -36,7 +36,7 @@ func init() {
 		initializeConfig(&cli)
 	})
 
-	rootCmd.PersistentFlags().StringVar(&configFile, "config", "", "config file (default is $HOME/.scritch/config.yaml)")
+	rootCmd.PersistentFlags().StringVar(&configFile, "config", "", "config file (default is ~/.scritch/config.yaml)")
 	rootCmd.PersistentFlags().StringVar(&cli.ScratchPath, "scratch-path", "~/.scritch/scratch", "path to generate scratches at")
 	rootCmd.PersistentFlags().StringVar(&cli.EditorCommand, "editor-command", "", "command to open an editor after scratch is generated")
 	rootCmd.PersistentFlags().StringArrayVar(&cli.CustomSources, "custom-sources", []string{"~/.scritch/templates"}, "list of paths to search for custom source tempaltes")
