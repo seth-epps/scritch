@@ -50,7 +50,7 @@ func getLanguageFromArgs(args []string) string {
 }
 
 func runScratch(cli *cli.CLI, language string, options scratchOptions) error {
-	templateProvider, err := getTemplateProvider(language, options)
+	templateProvider, err := getTemplateProvider(cli, language, options)
 	if err != nil {
 		log.Fatalf("Could not find template provider: %v", err)
 		return nil
@@ -67,20 +67,25 @@ func runScratch(cli *cli.CLI, language string, options scratchOptions) error {
 		log.Fatalf("Failed to generate scratch: %v", err)
 		return nil
 	}
-	log.Printf("Created scratch at %v", scratchLocation)
+	log.Printf("Created scratch at %v\n", scratchLocation)
 	if err = cli.OpenEditor(scratchLocation); err != nil {
-		fmt.Printf("Couldn't open editor: %v", err)
+		fmt.Printf("Couldn't open editor: %v\n", err)
 	}
 
 	return nil
 }
 
-func getTemplateProvider(language string, options scratchOptions) (templates.TemplateProvider, error) {
+func getTemplateProvider(cli *cli.CLI, language string, options scratchOptions) (templates.TemplateProvider, error) {
 	if language != "" {
 		return templates.NewEmbeddedTemplateProvider(language, options.variant), nil
 	}
+
 	if options.source != "" {
-		return templates.NewFilesystemTemplateProvider(options.source), nil
+		searchLocations, err := cli.ResolveCustomSourcePaths()
+		if err != nil {
+			fmt.Printf("WARNING: Some provided paths could not be resolved: %v\n", err)
+		}
+		return templates.NewFilesystemTemplateProvider(options.source, searchLocations), nil
 	}
 
 	return nil, errors.New("Must provide custom template source path if language not specified.")
