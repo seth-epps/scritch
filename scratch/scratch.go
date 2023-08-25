@@ -18,22 +18,26 @@ const (
 	directoryPermissions = os.ModeDir | 0755
 )
 
-type Scratcher struct {
-	Destination string
+type Scratch struct {
+	destination string
 }
 
-func NewDefaultScratcher() Scratcher {
+func NewScratch(destination string) Scratch {
+	return Scratch{
+		destination: destination,
+	}
+}
+
+func NewDefaultScratch() Scratch {
 	root, err := os.UserHomeDir()
 	if err != nil {
 		log.Printf("Could not resolve $HOME; falling back to %v", destinationFallback)
 		root = destinationFallback
 	}
-	return Scratcher{
-		Destination: filepath.Join(root, scritchDirectoryName),
-	}
+	return NewScratch(filepath.Join(root, scritchDirectoryName))
 }
 
-func (s Scratcher) GenerateScratch(templateProvider templates.TemplateProvider) (scratchLocation string, err error) {
+func (s Scratch) GenerateScratch(templateProvider templates.TemplateProvider) (scratchLocation string, err error) {
 	tmpls, err := templateProvider.Get()
 	if err != nil {
 		return scratchLocation, fmt.Errorf("Failed to retrieve template: %w", err)
@@ -51,9 +55,9 @@ func (s Scratcher) GenerateScratch(templateProvider templates.TemplateProvider) 
 	return scratchLocation, err
 }
 
-func (s Scratcher) createDestination(templateProvider templates.TemplateProvider) (string, error) {
+func (s Scratch) createDestination(templateProvider templates.TemplateProvider) (string, error) {
 	generatedUUID := uuid.New()
-	target := filepath.Join(s.Destination, templateProvider.TargetPath(), generatedUUID.String())
+	target := filepath.Join(s.destination, templateProvider.TargetPath(), generatedUUID.String())
 
 	if err := mkdirIfNotExist(target); err != nil {
 		return "", err

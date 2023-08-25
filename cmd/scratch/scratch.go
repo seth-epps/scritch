@@ -7,8 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"os/exec"
 
+	"github.com/seth-epps/scritch/cmd/cli"
 	"github.com/seth-epps/scritch/scratch"
 	"github.com/seth-epps/scritch/scratch/templates"
 	"github.com/spf13/cobra"
@@ -20,16 +20,16 @@ type scratchOptions struct {
 }
 
 // NewScratchCommand creates a new `scritch scratch` command
-func NewScratchCommand() *cobra.Command {
+func NewScratchCommand(cli *cli.CLI) *cobra.Command {
 	opts := scratchOptions{}
 
 	var scratchCmd = &cobra.Command{
 		Use:   "scratch [language]",
 		Short: "Create a scratch for specified supported langauge.",
-		Long: `Create a scratch for specified langauge or (TODO) specify your own source 
-templates.`,
+		Long: `Create a scratch for specified langauge or specify your own source 
+template.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runScratch(getLanguageFromArgs(args), opts)
+			return runScratch(cli, getLanguageFromArgs(args), opts)
 		},
 	}
 
@@ -49,38 +49,44 @@ func getLanguageFromArgs(args []string) string {
 	return args[0]
 }
 
-func runScratch(language string, options scratchOptions) error {
-	templateProvider, err := getTemplateProvider(language, options)
+func runScratch(cli *cli.CLI, language string, options scratchOptions) error {
+	templateProvider, err := getTemplateProvider(cli, language, options)
 	if err != nil {
 		log.Fatalf("Could not find template provider: %v", err)
 		return nil
 	}
 
-	scratcher := scratch.NewDefaultScratcher()
-	scratchLocation, err := scratcher.GenerateScratch(templateProvider)
+	scratchPath, err := cli.ResolveScratchPath()
+	if err != nil {
+		fmt.Printf("WARNING: Could not resolve the scratch path, attempting to use %v: %v\n", scratchPath, err)
+	}
+	scratch := scratch.NewScratch(scratchPath)
+	scratchLocation, err := scratch.GenerateScratch(templateProvider)
+
 	if err != nil {
 		log.Fatalf("Failed to generate scratch: %v", err)
 		return nil
 	}
-	log.Printf("Created scratch at %v", scratchLocation)
-	openEditor(scratchLocation)
+	log.Printf("Created scratch at %v\n", scratchLocation)
+	if err = cli.OpenEditor(scratchLocation); err != nil {
+		fmt.Printf("Couldn't open editor: %v\n", err)
+	}
+
 	return nil
 }
 
-func getTemplateProvider(language string, options scratchOptions) (templates.TemplateProvider, error) {
+func getTemplateProvider(cli *cli.CLI, language string, options scratchOptions) (templates.TemplateProvider, error) {
 	if language != "" {
 		return templates.NewEmbeddedTemplateProvider(language, options.variant), nil
 	}
+
 	if options.source != "" {
-		return templates.NewFilesystemTemplateProvider(options.source), nil
+		searchLocations, err := cli.ResolveCustomSourcePaths()
+		if err != nil {
+			fmt.Printf("WARNING: Some provided paths could not be resolved: %v\n", err)
+		}
+		return templates.NewFilesystemTemplateProvider(options.source, searchLocations), nil
 	}
 
 	return nil, errors.New("Must provide custom template source path if language not specified.")
-}
-
-func openEditor(path string) {
-	cmd := exec.Command("code", path)
-	if err := cmd.Run(); err != nil {
-		fmt.Printf("Couldn't open editor: %v", err)
-	}
 }
