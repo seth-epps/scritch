@@ -53,10 +53,8 @@ Eg, the go http variant
 ```
 
 ## TODO
- - [] Support custom scratch file destination directory
- - [] Support custom scratch "templates"
  - [] Support for template variables
- - [] Support config file that specifies destination and where to search for custom templates if absolute path not provided
- - [] Automatic starting of a new terminal at the scratch location
-    - [] Client that has language specific interactive elements (maybe charm?;eg, UI for `go fmt`,`go run main.go`, etc.)
+ - [] ~Automatic starting of a new terminal at the scratch location~ Probably not achievable
+ - [] TUI Client (maybe charm?; eg, UI for `go fmt`,`go run main.go`, etc.)
  - [] ...Major refactor...
+ - [] Unit tests... 😬
