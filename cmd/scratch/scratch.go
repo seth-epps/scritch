@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"os/exec"
 
 	"github.com/seth-epps/scritch/cmd/cli"
 	"github.com/seth-epps/scritch/scratch"
@@ -27,10 +26,10 @@ func NewScratchCommand(cli *cli.CLI) *cobra.Command {
 	var scratchCmd = &cobra.Command{
 		Use:   "scratch [language]",
 		Short: "Create a scratch for specified supported langauge.",
-		Long: `Create a scratch for specified langauge or (TODO) specify your own source 
-templates.`,
+		Long: `Create a scratch for specified langauge or specify your own source 
+template.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runScratch(getLanguageFromArgs(args), opts)
+			return runScratch(cli, getLanguageFromArgs(args), opts)
 		},
 	}
 
@@ -50,21 +49,29 @@ func getLanguageFromArgs(args []string) string {
 	return args[0]
 }
 
-func runScratch(language string, options scratchOptions) error {
+func runScratch(cli *cli.CLI, language string, options scratchOptions) error {
 	templateProvider, err := getTemplateProvider(language, options)
 	if err != nil {
 		log.Fatalf("Could not find template provider: %v", err)
 		return nil
 	}
 
-	scratcher := scratch.NewDefaultScratcher()
-	scratchLocation, err := scratcher.GenerateScratch(templateProvider)
+	scratchPath, err := cli.ResolveScratchPath()
+	if err != nil {
+		fmt.Printf("WARNING: Could not resolve the scratch path, attempting to use %v: %v\n", scratchPath, err)
+	}
+	scratch := scratch.NewScratch(scratchPath)
+	scratchLocation, err := scratch.GenerateScratch(templateProvider)
+
 	if err != nil {
 		log.Fatalf("Failed to generate scratch: %v", err)
 		return nil
 	}
 	log.Printf("Created scratch at %v", scratchLocation)
-	openEditor(scratchLocation)
+	if err = cli.OpenEditor(scratchLocation); err != nil {
+		fmt.Printf("Couldn't open editor: %v", err)
+	}
+
 	return nil
 }
 
@@ -77,11 +84,4 @@ func getTemplateProvider(language string, options scratchOptions) (templates.Tem
 	}
 
 	return nil, errors.New("Must provide custom template source path if language not specified.")
-}
-
-func openEditor(path string) {
-	cmd := exec.Command("code", path)
-	if err := cmd.Run(); err != nil {
-		fmt.Printf("Couldn't open editor: %v", err)
-	}
 }
