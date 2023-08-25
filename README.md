@@ -15,19 +15,19 @@ go build -o dist/scritch
 ❯ go install .
 
 ❯ which scritch
-/Users/seth.epps/go/bin/scritch
+/Users/{user}/go/bin/scritch
 
 ❯ scritch scratch go --variant=http
-2023/08/22 16:08:34 Created scratch at /Users/seth.epps/.scritch/go/http/0e584181-8c34-4153-9a72-3c6dccbeb0bc
+2023/08/22 16:08:34 Created scratch at /Users/{user}/.scritch/go/http/0e584181-8c34-4153-9a72-3c6dccbeb0bc
 ```
 
 ## Usage
 ### Default scratch files (Hello world)
 ```sh
 ❯ ./scritch scratch go
-2023/08/22 15:45:55 Created scratch at /Users/seth.epps/.scritch/go/default/11f4467b-87f7-455c-a1a4-fdb91a4c7afd
+2023/08/22 15:45:55 Created scratch at /Users/{user}/.scritch/go/default/11f4467b-87f7-455c-a1a4-fdb91a4c7afd
 
-❯ cd /Users/seth.epps/.scritch/go/default/11f4467b-87f7-455c-a1a4-fdb91a4c7afd
+❯ cd /Users/{user}/.scritch/go/default/11f4467b-87f7-455c-a1a4-fdb91a4c7afd
 
 ❯ go run main.go
 Hello!
@@ -37,9 +37,9 @@ Hello!
 Eg, the go http variant
 ```sh
 ❯ ./dist/scritch scratch go --variant=http
-2023/08/22 16:03:52 Created scratch at /Users/seth.epps/.scritch/go/http/b086906a-8140-4925-814b-eaeed1130ffe
+2023/08/22 16:03:52 Created scratch at /Users/{user}/.scritch/go/http/b086906a-8140-4925-814b-eaeed1130ffe
 
-❯ cd /Users/seth.epps/.scritch/go/http/b086906a-8140-4925-814b-eaeed1130ffe
+❯ cd /Users/{user}/.scritch/go/http/b086906a-8140-4925-814b-eaeed1130ffe
 
 ❯ go run main.go &
 [1] 60461
@@ -67,7 +67,7 @@ Eg, if you store a template `go_http` at `~/.scratch_templates`
 /Users/{user}/.scratch_templates/go_http
 
 ❯ scritch scratch --source=~/.scratch_templates/go_http
-2023/08/25 13:35:10 Created scratch at /Users/seth.epps/.scritch/scratch/go_http/708ebf03-6538-47a8-b9e3-0e36e8fb033b
+2023/08/25 13:35:10 Created scratch at /Users/{user}/.scritch/scratch/go_http/708ebf03-6538-47a8-b9e3-0e36e8fb033b
 ```
 
 ### Options
@@ -79,7 +79,7 @@ The generated scratch destination.
 A list of paths to look for source templates when you don't provide an absolute path. Eg,
 ```sh
 ❯ scritch scratch --source=go_http --custom-sources ~/.scratch_templates
-2023/08/25 13:41:16 Created scratch at /Users/seth.epps/.scritch/scratch/go_http/645d0805-0023-4c2d-9053-f9406c65d5f7
+2023/08/25 13:41:16 Created scratch at /Users/{user}/.scritch/scratch/go_http/645d0805-0023-4c2d-9053-f9406c65d5f7
 ```
 
 
