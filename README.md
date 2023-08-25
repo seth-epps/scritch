@@ -52,6 +52,53 @@ Eg, the go http variant
 ## [1]  + 60461 terminated  go run main.go
 ```
 
+### Custom Templates
+You can define your own custom scratch templates and pass that as a source to the scratch command.
+
+_All files need to have extension `.tpl`_
+
+Eg, if you store a template `go_http` at `~/.scratch_templates`
+```sh
+❯ find -d  ~/.scratch_templates/go_http_nested
+/Users/{user}/.scratch_templates/go_http/main.go.tpl
+/Users/{user}/.scratch_templates/go_http/go.mod.tpl
+/Users/{user}/.scratch_templates/go_http/pkg/models.go.tpl
+/Users/{user}/.scratch_templates/go_http/pkg
+/Users/{user}/.scratch_templates/go_http
+
+❯ scritch scratch --source=~/.scratch_templates/go_http
+2023/08/25 13:35:10 Created scratch at /Users/seth.epps/.scritch/scratch/go_http/708ebf03-6538-47a8-b9e3-0e36e8fb033b
+```
+
+### Options
+
+#### `scratch-path` (default `~/.scritch/scratch`)
+The generated scratch destination.
+
+#### `custom-sources` (default [[~/.scritch/templates]])
+A list of paths to look for source templates when you don't provide an absolute path. Eg,
+```sh
+❯ scritch scratch --source=go_http --custom-sources ~/.scratch_templates
+2023/08/25 13:41:16 Created scratch at /Users/seth.epps/.scritch/scratch/go_http/645d0805-0023-4c2d-9053-f9406c65d5f7
+```
+
+
+#### `editor-command`
+A command to execute on the resulting scratch path as `<command> <resulting-scratch-path>`.
+Eg, if you have vs-code installed and you specify `code`, vs-code will open with the workspace
+set to the newly created scratch.
+
+#### config (default `~/.scritch/config.yaml`)
+All options can be configured through a config yaml. Eg,
+
+```yaml
+custom-sources:
+  - ~/.scritch/templates
+  - ~/.scratch_templates
+scratch-path: ~/dev/scratch/files
+editor-command: code
+```
+
 ## TODO
  - [] Support for template variables
  - [] ~Automatic starting of a new terminal at the scratch location~ Probably not achievable
