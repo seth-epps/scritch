@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -26,15 +25,6 @@ func NewScratch(destination string) Scratch {
 	return Scratch{
 		destination: destination,
 	}
-}
-
-func NewDefaultScratch() Scratch {
-	root, err := os.UserHomeDir()
-	if err != nil {
-		log.Printf("Could not resolve $HOME; falling back to %v", destinationFallback)
-		root = destinationFallback
-	}
-	return NewScratch(filepath.Join(root, scritchDirectoryName))
 }
 
 func (s Scratch) GenerateScratch(templateProvider templates.TemplateProvider) (scratchLocation string, err error) {
