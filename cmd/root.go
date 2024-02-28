@@ -41,9 +41,11 @@ func init() {
 	rootCmd.PersistentFlags().StringArrayVar(&cli.CustomSources, "custom-sources", []string{"~/.scritch/templates"}, "list of paths to search for custom source tempaltes")
 	rootCmd.PersistentFlags().StringVarP(&cli.OutputFormat, "output-format", "o", "", "output format of result")
 
+	// Bind the cmd flags to the viper configs so the flags can override the config file
 	viper.BindPFlag("scratch-path", rootCmd.PersistentFlags().Lookup("scratch-path"))
 	viper.BindPFlag("editor-command", rootCmd.PersistentFlags().Lookup("editor-command"))
 	viper.BindPFlag("custom-sources", rootCmd.PersistentFlags().Lookup("custom-sources"))
+	viper.BindPFlag("output-format", rootCmd.PersistentFlags().Lookup("output-format"))
 
 	rootCmd.AddCommand(NewScratchCommand(&cli))
 	rootCmd.AddCommand(NewListCommand(&cli))
@@ -70,7 +72,7 @@ func initializeConfig(cli *cli.CLI) {
 	}
 
 	if err := viper.Unmarshal(cli); err != nil {
-		cobra.CheckErr(fmt.Errorf("Couldn't construct configuration: %w", err))
+		cobra.CheckErr(fmt.Errorf("couldn't construct configuration: %w", err))
 	}
 
 }
