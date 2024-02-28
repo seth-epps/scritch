@@ -9,8 +9,6 @@ import (
 	"path/filepath"
 
 	"github.com/seth-epps/scritch/cmd/cli"
-	list_cmd "github.com/seth-epps/scritch/cmd/list"
-	scratch_cmd "github.com/seth-epps/scritch/cmd/scratch"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -47,8 +45,8 @@ func init() {
 	viper.BindPFlag("editor-command", rootCmd.PersistentFlags().Lookup("editor-command"))
 	viper.BindPFlag("custom-sources", rootCmd.PersistentFlags().Lookup("custom-sources"))
 
-	rootCmd.AddCommand(scratch_cmd.NewScratchCommand(&cli))
-	rootCmd.AddCommand(list_cmd.NewListCommand(&cli))
+	rootCmd.AddCommand(NewScratchCommand(&cli))
+	rootCmd.AddCommand(NewListCommand(&cli))
 }
 
 func initializeConfig(cli *cli.CLI) {
