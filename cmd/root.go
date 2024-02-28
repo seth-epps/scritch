@@ -9,7 +9,8 @@ import (
 	"path/filepath"
 
 	"github.com/seth-epps/scritch/cmd/cli"
-	cmd "github.com/seth-epps/scritch/cmd/scratch"
+	list_cmd "github.com/seth-epps/scritch/cmd/list"
+	scratch_cmd "github.com/seth-epps/scritch/cmd/scratch"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -40,12 +41,14 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cli.ScratchPath, "scratch-path", "~/.scritch/scratch", "path to generate scratches at")
 	rootCmd.PersistentFlags().StringVar(&cli.EditorCommand, "editor-command", "", "command to open an editor after scratch is generated")
 	rootCmd.PersistentFlags().StringArrayVar(&cli.CustomSources, "custom-sources", []string{"~/.scritch/templates"}, "list of paths to search for custom source tempaltes")
+	rootCmd.PersistentFlags().StringVarP(&cli.OutputFormat, "output-format", "o", "", "output format of result")
 
 	viper.BindPFlag("scratch-path", rootCmd.PersistentFlags().Lookup("scratch-path"))
 	viper.BindPFlag("editor-command", rootCmd.PersistentFlags().Lookup("editor-command"))
 	viper.BindPFlag("custom-sources", rootCmd.PersistentFlags().Lookup("custom-sources"))
 
-	rootCmd.AddCommand(cmd.NewScratchCommand(&cli))
+	rootCmd.AddCommand(scratch_cmd.NewScratchCommand(&cli))
+	rootCmd.AddCommand(list_cmd.NewListCommand(&cli))
 }
 
 func initializeConfig(cli *cli.CLI) {

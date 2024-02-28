@@ -56,11 +56,11 @@ func (fp FilesystemTemplateProvider) Get() ([]Template, error) {
 	})
 
 	if err != nil {
-		return templates, fmt.Errorf("Could not navigate path `%v`: %w", templateLocation, err)
+		return templates, fmt.Errorf("could not navigate path `%v`: %w", templateLocation, err)
 	}
 
 	if len(templates) == 0 {
-		return nil, fmt.Errorf("Could not find templates to render at path `%v`", templateLocation)
+		return nil, fmt.Errorf("could not find templates to render at path `%v`", templateLocation)
 	}
 
 	return templates, nil
@@ -68,6 +68,26 @@ func (fp FilesystemTemplateProvider) Get() ([]Template, error) {
 
 func (fp FilesystemTemplateProvider) TargetPath() string {
 	return filepath.Base(fp.sourcepath)
+}
+
+func ListLocationSources(locations []string) map[string][]string {
+	sourceMap := make(map[string][]string)
+
+	for _, searchPath := range locations {
+		entries, err := os.ReadDir(searchPath)
+		if err != nil {
+			// intentionally skip over directories when we encounter errors
+			continue
+		}
+
+		for _, e := range entries {
+			if e.IsDir() {
+				sourceMap[searchPath] = append(sourceMap[searchPath], e.Name())
+			}
+		}
+	}
+
+	return sourceMap
 }
 
 func (fp FilesystemTemplateProvider) findTemplateLocation() (string, error) {

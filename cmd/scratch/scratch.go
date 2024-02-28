@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"slices"
 
 	"github.com/seth-epps/scritch/cmd/cli"
 	"github.com/seth-epps/scritch/scratch"
@@ -14,43 +15,29 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type scratchOptions struct {
-	variant string
-	source  string
-}
-
 // NewScratchCommand creates a new `scritch scratch` command
 func NewScratchCommand(cli *cli.CLI) *cobra.Command {
-	opts := scratchOptions{}
 
 	var scratchCmd = &cobra.Command{
-		Use:   "scratch [language]",
-		Short: "Create a scratch for specified supported langauge.",
-		Long: `Create a scratch for specified langauge or specify your own source 
-template.`,
+		Use:   "scratch [source]",
+		Short: "Create a scratch for specified source.",
+		Long:  `Create a scratch for natively supported source langauge or specify your own source template.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runScratch(cli, getLanguageFromArgs(args), opts)
+			if len(args) == 0 {
+				return errors.New("must provide a source")
+			}
+			return runScratch(cli, args[0])
 		},
 	}
 
 	// remove additional "[flags]" in usage string
 	scratchCmd.DisableFlagsInUseLine = true
 
-	scratchCmd.Flags().StringVarP(&opts.variant, "variant", "v", "default", "Language template variant.")
-	scratchCmd.Flags().StringVarP(&opts.source, "source", "s", "", "Custom source template directory to generate scratch workspace for if language is not specified.")
-
 	return scratchCmd
 }
 
-func getLanguageFromArgs(args []string) string {
-	if len(args) == 0 {
-		return ""
-	}
-	return args[0]
-}
-
-func runScratch(cli *cli.CLI, language string, options scratchOptions) error {
-	templateProvider, err := getTemplateProvider(cli, language, options)
+func runScratch(cli *cli.CLI, source string) error {
+	templateProvider, err := getTemplateProvider(cli, source)
 	if err != nil {
 		log.Fatalf("Could not find template provider: %v", err)
 		return nil
@@ -75,18 +62,15 @@ func runScratch(cli *cli.CLI, language string, options scratchOptions) error {
 	return nil
 }
 
-func getTemplateProvider(cli *cli.CLI, language string, options scratchOptions) (templates.TemplateProvider, error) {
-	if language != "" {
-		return templates.NewEmbeddedTemplateProvider(language, options.variant), nil
+func getTemplateProvider(cli *cli.CLI, source string) (templates.TemplateProvider, error) {
+	if slices.Contains(templates.SupportedTemplates, source) {
+		return templates.NewEmbeddedTemplateProvider(source), nil
 	}
 
-	if options.source != "" {
-		searchLocations, err := cli.ResolveCustomSourcePaths()
-		if err != nil {
-			fmt.Printf("WARNING: Some provided paths could not be resolved: %v\n", err)
-		}
-		return templates.NewFilesystemTemplateProvider(options.source, searchLocations), nil
+	searchLocations, err := cli.ResolveCustomSourcePaths()
+	if err != nil {
+		fmt.Printf("WARNING: Some provided paths could not be resolved: %v\n", err)
 	}
+	return templates.NewFilesystemTemplateProvider(source, searchLocations), nil
 
-	return nil, errors.New("Must provide custom template source path if language not specified.")
 }

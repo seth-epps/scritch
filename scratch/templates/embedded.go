@@ -12,11 +12,10 @@ import (
 
 type EmbeddedTemplateProvider struct {
 	language string
-	variant  string
 }
 
-func NewEmbeddedTemplateProvider(language, variant string) EmbeddedTemplateProvider {
-	return EmbeddedTemplateProvider{language: language, variant: variant}
+func NewEmbeddedTemplateProvider(language string) EmbeddedTemplateProvider {
+	return EmbeddedTemplateProvider{language: language}
 }
 
 func (tp EmbeddedTemplateProvider) Get() ([]Template, error) {
@@ -27,7 +26,7 @@ func (tp EmbeddedTemplateProvider) Get() ([]Template, error) {
 }
 
 func (tp EmbeddedTemplateProvider) TargetPath() string {
-	return filepath.Join(tp.language, tp.variant)
+	return filepath.Join(tp.language)
 }
 
 func collectTemplates(language string) ([]Template, error) {
