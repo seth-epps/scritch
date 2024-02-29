@@ -56,11 +56,11 @@ func (fp FilesystemTemplateProvider) Get() ([]Template, error) {
 	})
 
 	if err != nil {
-		return templates, fmt.Errorf("Could not navigate path `%v`: %w", templateLocation, err)
+		return templates, fmt.Errorf("could not navigate path `%v`: %w", templateLocation, err)
 	}
 
 	if len(templates) == 0 {
-		return nil, fmt.Errorf("Could not find templates to render at path `%v`", templateLocation)
+		return nil, fmt.Errorf("could not find templates to render at path `%v`", templateLocation)
 	}
 
 	return templates, nil

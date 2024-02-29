@@ -11,6 +11,7 @@ type CLI struct {
 	ScratchPath   string   `mapstructure:"scratch-path"`
 	EditorCommand string   `mapstructure:"editor-command"`
 	CustomSources []string `mapstructure:"custom-sources"`
+	OutputFormat  string   `mapstructure:"output-format"`
 }
 
 // ResolveScratchPath attempts to do `~` shortcut replacement. If there's any errors

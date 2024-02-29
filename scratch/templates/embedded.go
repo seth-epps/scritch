@@ -12,31 +12,25 @@ import (
 
 type EmbeddedTemplateProvider struct {
 	language string
-	variant  string
 }
 
-func NewEmbeddedTemplateProvider(language, variant string) EmbeddedTemplateProvider {
-	return EmbeddedTemplateProvider{language: language, variant: variant}
+func NewEmbeddedTemplateProvider(language string) EmbeddedTemplateProvider {
+	return EmbeddedTemplateProvider{language: language}
 }
 
 func (tp EmbeddedTemplateProvider) Get() ([]Template, error) {
-	if variants, ok := SupportedTemplates[tp.language]; ok {
-
-		if !slices.Contains(variants, tp.variant) {
-			return nil, fmt.Errorf("%v variant is not supported for %v", tp.variant, tp.language)
-		}
-		return findLanguageVariant(tp.language, tp.variant)
-	} else {
-		return nil, fmt.Errorf("%v is not supported natively", tp.language)
+	if !slices.Contains(SupportedTemplates, tp.language) {
+		return nil, fmt.Errorf("%v is not supported", tp.language)
 	}
+	return collectTemplates(tp.language)
 }
 
 func (tp EmbeddedTemplateProvider) TargetPath() string {
-	return filepath.Join(tp.language, tp.variant)
+	return filepath.Join(tp.language)
 }
 
-func findLanguageVariant(language, variant string) ([]Template, error) {
-	embeddedPath := filepath.Join(templateFSRoot, language, variant)
+func collectTemplates(language string) ([]Template, error) {
+	embeddedPath := filepath.Join(templateFSRoot, language)
 	pathGlob := filepath.Join(embeddedPath, "*.tpl")
 
 	tmplGlob := template.Must(
@@ -46,7 +40,6 @@ func findLanguageVariant(language, variant string) ([]Template, error) {
 	)
 
 	var templates []Template
-
 	for _, tmpl := range tmplGlob.Templates() {
 		relPath, _ := strings.CutSuffix(tmpl.Name(), ".tpl")
 		templates = append(templates, Template{
@@ -56,7 +49,7 @@ func findLanguageVariant(language, variant string) ([]Template, error) {
 	}
 
 	if len(templates) == 0 {
-		return nil, fmt.Errorf("Could not find native templates for `%v (%v)`", language, variant)
+		return nil, fmt.Errorf("could not find native templates for `%v`", language)
 	}
 
 	return templates, nil
