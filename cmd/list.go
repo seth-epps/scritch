@@ -12,6 +12,7 @@ import (
 
 	"github.com/seth-epps/scritch/cmd/cli"
 	"github.com/seth-epps/scritch/scratch/templates"
+	"github.com/seth-epps/scritch/scratch/util"
 	"github.com/spf13/cobra"
 )
 
@@ -47,7 +48,7 @@ func runList(cli *cli.CLI) error {
 		fmt.Printf("WARNING: Some provided paths could not be resolved: %v\n", err)
 	}
 
-	fsSources := templates.ListLocationSources(searchLocations)
+	fsSources := listSources(searchLocations)
 	for sourceLocation, sources := range fsSources {
 		for _, source := range sources {
 			// native templates take precedence over custom templates
@@ -73,4 +74,21 @@ func renderList(cli *cli.CLI, l []listItem) error {
 		tw.Flush()
 		return nil
 	}
+}
+
+func listSources(locations []string) map[string][]string {
+	sourceMap := make(map[string][]string)
+
+	for _, searchPath := range locations {
+		contents, err := util.ListDirs(searchPath, 1, false, nil)
+		if err != nil {
+			// intentionally skip directories when we encounter errors
+			// todo (seth) maybe log?
+			continue
+		}
+
+		sourceMap[searchPath] = contents
+	}
+
+	return sourceMap
 }

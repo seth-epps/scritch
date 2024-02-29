@@ -38,7 +38,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&configFile, "config", "", "config file (default is ~/.scritch/config.yaml)")
 	rootCmd.PersistentFlags().StringVar(&cli.ScratchPath, "scratch-path", "~/.scritch/scratch", "path to generate scratches at")
 	rootCmd.PersistentFlags().StringVar(&cli.EditorCommand, "editor-command", "", "command to open an editor after scratch is generated")
-	rootCmd.PersistentFlags().StringArrayVar(&cli.CustomSources, "custom-sources", []string{"~/.scritch/templates"}, "list of paths to search for custom source tempaltes")
+	rootCmd.PersistentFlags().StringSliceVar(&cli.CustomSources, "custom-sources", []string{"~/.scritch/templates"}, "list of paths to search for custom source templates; use escaped quotes if the path contains `,`")
 	rootCmd.PersistentFlags().StringVarP(&cli.OutputFormat, "output-format", "o", "", "output format of result")
 
 	// Bind the cmd flags to the viper configs so the flags can override the config file
@@ -49,6 +49,7 @@ func init() {
 
 	rootCmd.AddCommand(NewScratchCommand(&cli))
 	rootCmd.AddCommand(NewListCommand(&cli))
+	rootCmd.AddCommand(NewCleanCommand(&cli))
 }
 
 func initializeConfig(cli *cli.CLI) {

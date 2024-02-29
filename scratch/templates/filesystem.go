@@ -70,26 +70,6 @@ func (fp FilesystemTemplateProvider) TargetPath() string {
 	return filepath.Base(fp.sourcepath)
 }
 
-func ListLocationSources(locations []string) map[string][]string {
-	sourceMap := make(map[string][]string)
-
-	for _, searchPath := range locations {
-		entries, err := os.ReadDir(searchPath)
-		if err != nil {
-			// intentionally skip over directories when we encounter errors
-			continue
-		}
-
-		for _, e := range entries {
-			if e.IsDir() {
-				sourceMap[searchPath] = append(sourceMap[searchPath], e.Name())
-			}
-		}
-	}
-
-	return sourceMap
-}
-
 func (fp FilesystemTemplateProvider) findTemplateLocation() (string, error) {
 	path, err := util.ReplaceHomeShortcut(fp.sourcepath)
 	if err != nil {
