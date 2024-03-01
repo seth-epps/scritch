@@ -58,10 +58,10 @@ func runList(cli *cli.CLI) error {
 		}
 	}
 
-	return renderList(cli, res)
+	return printList(cli, res)
 }
 
-func renderList(cli *cli.CLI, l []listItem) error {
+func printList(cli *cli.CLI, l []listItem) error {
 	switch cli.OutputFormat {
 	case "json":
 		return json.NewEncoder(os.Stdout).Encode(l)

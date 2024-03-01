@@ -95,5 +95,5 @@ func searchForSource(source string, locations []string) (string, error) {
 			return potentialPath, nil
 		}
 	}
-	return "", errors.Join(errors.New("could not find source"), err)
+	return "", errors.Join(fmt.Errorf("could not find source `%s`", source), err)
 }

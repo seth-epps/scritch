@@ -4,9 +4,11 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"slices"
 
 	"github.com/seth-epps/scritch/cmd/cli"
@@ -14,6 +16,10 @@ import (
 	"github.com/seth-epps/scritch/scratch/templates"
 	"github.com/spf13/cobra"
 )
+
+type scratchResult struct {
+	Path string `json:"path"`
+}
 
 // NewScratchCommand creates a new `scritch scratch` command
 func NewScratchCommand(cli *cli.CLI) *cobra.Command {
@@ -45,7 +51,7 @@ func runScratch(cli *cli.CLI, source string) error {
 
 	scratchPath, err := cli.ResolveScratchPath()
 	if err != nil {
-		fmt.Printf("WARNING: Could not resolve the scratch path, attempting to use %v: %v\n", scratchPath, err)
+		log.Printf("WARNING: Could not resolve the scratch path, attempting to use %v: %v", scratchPath, err)
 	}
 	scratch := scratch.NewScratch(scratchPath)
 	scratchLocation, err := scratch.GenerateScratch(templateProvider)
@@ -54,12 +60,23 @@ func runScratch(cli *cli.CLI, source string) error {
 		log.Fatalf("Failed to generate scratch: %v", err)
 		return nil
 	}
-	log.Printf("Created scratch at %v\n", scratchLocation)
+
+	printScratch(cli, scratchResult{scratchLocation})
 	if err = cli.OpenEditor(scratchLocation); err != nil {
 		fmt.Printf("Couldn't open editor: %v\n", err)
 	}
 
 	return nil
+}
+
+func printScratch(cli *cli.CLI, res scratchResult) error {
+	switch cli.OutputFormat {
+	case "json":
+		return json.NewEncoder(os.Stdout).Encode(res)
+	default:
+		fmt.Printf("Created scratch at %v\n", res.Path)
+		return nil
+	}
 }
 
 func getTemplateProvider(cli *cli.CLI, source string) (templates.TemplateProvider, error) {
